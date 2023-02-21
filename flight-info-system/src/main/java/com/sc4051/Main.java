@@ -8,6 +8,7 @@ public class Main{
         Server test = new Server();
         
         test.print_hi();
+        System.out.println(test.getNum());
     }
 
 }
