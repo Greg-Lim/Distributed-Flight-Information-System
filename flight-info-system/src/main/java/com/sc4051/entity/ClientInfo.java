@@ -12,6 +12,13 @@ public class ClientInfo {
     long timeout;
 
     public ClientInfo(int queryID, SocketAddress socketAddress, long timeoutMS){
+        this.queryID = queryID;
+        this.socketAddress = socketAddress;
         timeout = timeout + System.currentTimeMillis();
+    }
+
+    public boolean isTimeout(){
+        return false;
+        //return timeout<System.currentTimeMillis();
     }
 }
