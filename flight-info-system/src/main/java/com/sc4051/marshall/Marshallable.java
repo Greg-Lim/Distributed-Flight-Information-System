@@ -1,8 +1,11 @@
 package com.sc4051.marshall;
 
+import java.util.List;
 
-// I dk if a interface is good/ dooable
-public interface Marshallable {
-    public byte[] marshall(Object obj);
-    public Object unmarshall(byte[] buf);
+import com.sc4051.entity.FlightInfo;
+
+// Idk if a interface is good/ dooable
+public interface Marshallable<T>{
+    public void marshall(List<Byte> byteList);
+    public T unmarshall(byte[] bytes);
 }

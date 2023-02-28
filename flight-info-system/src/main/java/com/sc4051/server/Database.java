@@ -22,6 +22,7 @@ public class Database {
     private static HashMap<Integer, List<ClientInfo>> callbackList = new HashMap<>();
 
     public Database(boolean test){
+        setupTest();
     }
 
     public Database(){
@@ -29,6 +30,15 @@ public class Database {
     }
 
     private static void setup(){
+        allFlights.add(new FlightInfo(1010, "SIN", "NRT", new DateTime(2023,1,1,1,15), 600, 10));
+        allFlights.add(new FlightInfo(2020, "NRT", "SIN", new DateTime(2023,2,2,2,25), 700, 120));
+        allFlights.add(new FlightInfo(3030, "SIN", "PEK", new DateTime(2023,3,3,3,35), 800, 130));
+        allFlights.add(new FlightInfo(4040, "PEK", "NRT", new DateTime(2023,4,4,4,45), 850, 140));
+        allFlights.add(new FlightInfo(5050, "PEK", "SIN", new DateTime(2023,5,5,5,55), 900, 150));
+        allFlights.add(new FlightInfo(6060, "NRT", "PEK", new DateTime(2023,6,6,6,05), 950, 160));
+    }
+
+    private static void setupTest(){
         allFlights.add(new FlightInfo(1010, "SIN", "NRT", new DateTime(2023,1,1,1,15), 600, 10));
         allFlights.add(new FlightInfo(2020, "NRT", "SIN", new DateTime(2023,2,2,2,25), 700, 120));
         allFlights.add(new FlightInfo(3030, "SIN", "PEK", new DateTime(2023,3,3,3,35), 800, 130));

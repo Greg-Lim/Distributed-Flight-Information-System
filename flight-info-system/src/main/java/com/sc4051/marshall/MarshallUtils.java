@@ -1,13 +1,17 @@
 package com.sc4051.marshall;
 
 import com.google.common.primitives.Bytes;
+import com.sc4051.entity.FlightInfo;
+
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 
 public class MarshallUtils {
-    
+
+    // ===== Primitive Marshaller =====
     public static int unmarshallInt(List<Byte> byteList) {
         return intFromByteList(byteList);
     }
@@ -55,7 +59,7 @@ public class MarshallUtils {
 
     public static String unmarshallString(List<Byte> byteList) {
 
-        int size = shortFromByteList(byteList);
+        int size = intFromByteList(byteList);
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < size; i++) {
             builder.append((char) byteList.remove(0).byteValue());
@@ -66,7 +70,7 @@ public class MarshallUtils {
     public static void marshallString(Object o, List<Byte> res) {
         String s = (String) o;
 
-        res.addAll(shortToByteList((short) s.length()));
+        res.addAll(intToByteList((int) s.length()));
         res.addAll(Bytes.asList(s.getBytes()));
     }
 
