@@ -20,8 +20,17 @@ import lombok.experimental.Tolerate;
 public class Message {
     int ID;
     int ack;
-    int type;
+    int type; // 0 Ping, 1-5 queries 999 is error
     List<Byte> body;
+
+    public Message(int ID, int ack, String errorMsg){
+        this.type = 999;
+        List<Byte> body = new LinkedList<Byte>();
+        MarshallUtils.marshallString(errorMsg, body);
+        this.body = body;
+        this.ID = ID;
+        this.ack = ack;
+    }
 
     public Message(byte[] bytes) {
         List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(bytes));
@@ -49,5 +58,15 @@ public class Message {
         byteList.addAll(t);
 
         return Bytes.toArray(byteList);
+    }
+
+    public boolean isErr(){
+        return type == 999;
+    }
+
+    public void printErr(){
+        if(type==999){
+            System.out.println(MarshallUtils.unmarshallString(body));
+        } else {System.out.println("Something wrong");}
     }
 }

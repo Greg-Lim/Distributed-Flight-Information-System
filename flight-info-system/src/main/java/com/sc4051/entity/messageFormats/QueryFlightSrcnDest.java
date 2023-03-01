@@ -11,11 +11,11 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class QueryFlight {
+public class QueryFlightSrcnDest {
     String src;
     String dest;
 
-    public QueryFlight(List<Byte> byteList) {
+    public QueryFlightSrcnDest(List<Byte> byteList) {
         src = MarshallUtils.unmarshallString(byteList);
         dest = MarshallUtils.unmarshallString(byteList);
     }

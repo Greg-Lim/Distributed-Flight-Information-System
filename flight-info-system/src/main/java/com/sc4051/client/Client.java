@@ -9,7 +9,8 @@ import java.util.Scanner;
 import com.google.common.primitives.Bytes;
 import com.sc4051.entity.FlightInfo;
 import com.sc4051.entity.Message;
-import com.sc4051.entity.messageFormats.QueryFlight;
+import com.sc4051.entity.messageFormats.QueryFlightID;
+import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
 import com.sc4051.marshall.Marshaller;
@@ -33,10 +34,10 @@ public static void main(String args[]){
     int messageID = 0;
 
     while(true){
+        ClientView.printMenu();
         messageID +=1;
 
-        int choice = sc.nextInt();
-        System.out.println("choice made");
+        int choice = ClientView.getUserChoice();
 
         switch(choice){
             case 0: // ping
@@ -58,11 +59,10 @@ public static void main(String args[]){
                 break;
             case 1: //Search given src and dest
                 try{
-                    System.out.print("Input source:");
-                    String src = sc.next().toUpperCase();
-                    System.out.print("Input destination:");
-                    String dest = sc.next().toUpperCase();
-                    QueryFlight queryFlight = new QueryFlight(src, dest);
+                    String[] t = ClientView.getSrcnDest();
+                    String src = t[0];
+                    String dest = t[1];
+                    QueryFlightSrcnDest queryFlight = new QueryFlightSrcnDest(src, dest);
                     Message requestBody = new Message(messageID, 0, 1, queryFlight.marshall());
                     System.out.println(requestBody);
                     DatagramPacket request = new DatagramPacket(requestBody.marshall(), requestBody.marshall().length, aHost, serverPort);
@@ -74,14 +74,45 @@ public static void main(String args[]){
 
                     List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(reply.getData()));
                     Message message = new Message(byteList);
-                    List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(message.getBody());
-                    System.out.println(flightInfoList.toString());
+                    System.out.println(message);
+                    if (message.isErr()){
+                        message.printErr();
+                    } else {
+                        List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(message.getBody());
+                        System.out.println(flightInfoList.toString());
+                    }
 
                 } catch(IOException e){System.out.println(e);}
                 break;
-                
-            }
+            case 2: //
+                try{
+                    int id = ClientView.getFlightID();
 
+                    QueryFlightID queryFlight = new QueryFlightID(id);
+                    Message requestBody = new Message(messageID, 0, 2, queryFlight.marshall());
+                    System.out.println(requestBody);
+                    DatagramPacket request = new DatagramPacket(requestBody.marshall(), requestBody.marshall().length, aHost, serverPort);
+                    aSocket.send(request);
+
+                    byte[] replyBuffer = new byte[100];
+                    DatagramPacket reply = new DatagramPacket(replyBuffer, replyBuffer.length);
+                    aSocket.receive(reply);
+
+                    List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(reply.getData()));
+                    Message message = new Message(byteList);
+                    if (message.isErr()){
+                        message.printErr();
+                    } else {
+                        List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(message.getBody());
+                        System.out.println(flightInfoList.get(0).toString());
+                    }
+                } catch(IOException e){System.out.println(e);}
+                break;
+                
+            default:
+                System.out.println("***** Invalid Input *****");
+            }
+            
 
         }
 
