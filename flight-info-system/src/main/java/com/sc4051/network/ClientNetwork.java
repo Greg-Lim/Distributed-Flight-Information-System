@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketAddress;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -17,18 +16,19 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class Network {
-    // int destinationPort;
+public class ClientNetwork {
+    int destinationPort;
     DatagramSocket socket = null;
     InetAddress host = null;
-    int replyPort;
 
     // int messageID;
 
-    public Network(int port) throws NetworkErrorException{
+    public ClientNetwork(int destinationPort) throws NetworkErrorException{
+        // this.messageID = messageID;
+        this.destinationPort = destinationPort;
         try{
             host = InetAddress.getLocalHost();
-            socket = new DatagramSocket(port);
+            socket = new DatagramSocket();
         } catch(Exception e){
             System.out.println( e.toString());
             throw new NetworkErrorException();
@@ -36,23 +36,17 @@ public class Network {
     }
 
     //Simulate network here
-    public void sendMessage(Message message, int destinationPort){
-        List<Byte> byteList = new LinkedList<Byte>();
-        message.marshall(byteList);
-        byte[] bytes = Bytes.toArray(byteList);
-        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, destinationPort);
-        try{
-            socket.send(packet);
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-    }
+    public void sendMessage(Message message){
+        // messageID+=1;
 
-    public void sendReply(Message message){
         List<Byte> byteList = new LinkedList<Byte>();
+        // MarshallUtils.marshallInt(messageID, byteList);
+
         message.marshall(byteList);
+
         byte[] bytes = Bytes.toArray(byteList);
-        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, replyPort);
+
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, destinationPort);
         try{
             socket.send(packet);
         } catch (IOException e) {
@@ -69,9 +63,15 @@ public class Network {
             socket.receive(packet);
         } catch (IOException e) {System.out.println(e);}
         List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(packet.getData()));
-        replyPort = packet.getPort();
+
+        // messageID = MarshallUtils.unmarshallInt(byteList);
+
+        // byte[] bytes = Bytes.toArray(byteList);
+
         Message message = new Message(byteList);
+
         return message;
     }
+    
     
 }

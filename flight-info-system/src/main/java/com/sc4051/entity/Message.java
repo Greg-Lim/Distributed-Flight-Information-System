@@ -1,6 +1,7 @@
 package com.sc4051.entity;
 
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,6 +23,13 @@ public class Message {
     int ack;
     int type; // 0 Ping, 1-5 queries 999 is error
     List<Byte> body;
+
+    public Message(){
+        this.type = 0;
+        this.ID = 0;
+        this.ack = 0;
+        this.body = Bytes.asList(HexFormat.ofDelimiter(":").parseHex("00:00:00:05:68:65:6c:6c:6f")); //5 Hello
+    }
 
     public Message(int ID, int ack, String errorMsg){
         this.type = 999;
@@ -48,16 +56,13 @@ public class Message {
         body = byteList;
     }
 
-    public byte[] marshall(){
-        List<Byte> byteList = new ArrayList<>();
-
+    public List<Byte> marshall(List<Byte> byteList){
         MarshallUtils.marshallInt(ID, byteList);
         MarshallUtils.marshallInt(ack, byteList);
         MarshallUtils.marshallInt(type, byteList);
         List<Byte> t = new LinkedList<Byte>(body);
         byteList.addAll(t);
-
-        return Bytes.toArray(byteList);
+        return byteList;
     }
 
     public boolean isErr(){
