@@ -1,7 +1,6 @@
 package com.sc4051.server;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -69,13 +68,19 @@ public class Database {
         return flightList;
     }
 
-    public boolean makeReservation(int id, int noSeats) throws NotEnoughSeatException{
+    public boolean makeReservation(int id, int noSeats) throws NotEnoughSeatException, NoSuchFlightException{
         List<FlightInfo> flights = getFlights(id);
+        if(flights.size()==0){
+            throw new NoSuchFlightException();
+        }
         FlightInfo flight = flights.get(0);
-        if(flight.getSeatAvailible()<noSeats){
+        if(flight.getSeatAvailible() < noSeats){
             throw new NotEnoughSeatException();
         }
-        else return true;
+        else {
+            flight.setSeatAvailible(flight.getSeatAvailible() - noSeats);
+            return true;
+        }
     }
 
     public void addNotifyFlightList(int id, ClientInfo client) throws NoSuchFlightException{

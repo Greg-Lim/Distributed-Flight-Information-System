@@ -44,13 +44,28 @@ public class ClientView {
     }
 
 
+    public static int getFlightIDOnly(){
+        int id;
+        System.out.println("Enter Flight ID: ");
+        id = getInt();
+        return id;
+    }
+
+    public static int getNumberOfSeat(){
+        int id;
+        System.out.println("Enter Number of seats to reserve: ");
+        id = getInt();
+        return id;
+    }
+
 
 
 
 
     public static int getInt(){
         try{
-            return sc.nextInt();
+            int i = sc.nextInt();
+            return i;
         } catch(Exception e) {
             System.out.println("Invalid int");
             return getInt();

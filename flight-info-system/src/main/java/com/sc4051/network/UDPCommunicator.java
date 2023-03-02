@@ -10,8 +10,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.google.common.primitives.Bytes;
-import com.sc4051.entity.Message;
-import com.sc4051.marshall.MarshallUtils;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -24,9 +22,23 @@ public class UDPCommunicator {
     InetAddress host = null;
     int timeOutTime = 1000;
     SocketAddress replyAddress;
+    double sendProbibility;
 
     public UDPCommunicator(SocketAddress socketAddress, int timeOutTime) throws NetworkErrorException{
         this.timeOutTime = timeOutTime;
+        sendProbibility = 1;
+        try{
+            host = InetAddress.getLocalHost();
+            socket = new DatagramSocket(socketAddress);
+        } catch(Exception e){
+            System.out.println(e.toString());
+            throw new NetworkErrorException();
+        }
+    }
+
+    public UDPCommunicator(SocketAddress socketAddress, int timeOutTime, double sendProbibility) throws NetworkErrorException{
+        this.timeOutTime = timeOutTime;
+        this.sendProbibility = sendProbibility;
         try{
             host = InetAddress.getLocalHost();
             socket = new DatagramSocket(socketAddress);
@@ -38,26 +50,23 @@ public class UDPCommunicator {
 
     //Simulate network here
     //VVV this method should be removed
-    public void sendMessage(List<Byte> byteList, int destinationPort){
-        // List<Byte> byteList = new LinkedList<Byte>();
-        // message.marshall(byteList);
-        byte[] bytes = Bytes.toArray(byteList);
-        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, destinationPort);
-        try{
-            socket.send(packet);
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-    }
+    // public void sendMessage(List<Byte> byteList, int destinationPort){
+    //     // List<Byte> byteList = new LinkedList<Byte>();
+    //     // message.marshall(byteList);
+    //     byte[] bytes = Bytes.toArray(byteList);
+    //     DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, destinationPort);
+    //     try{
+    //         socket.send(packet);
+    //     } catch (IOException e) {
+    //         System.out.println(e);
+    //     }
+    // }
 
     public void sendMessage(List<Byte> byteList, SocketAddress socketAddress){
         // List<Byte> byteList = new LinkedList<Byte>();
         // message.marshall(byteList);
         byte[] bytes = Bytes.toArray(byteList);
         DatagramPacket packet = new DatagramPacket(bytes, bytes.length, socketAddress); //I really dk why this dont work
-        // System.out.println(socketAddress.toString());
-        // DatagramPacket packet = new DatagramPacket(bytes, bytes.length, host, 6677);
-
         try{
             socket.send(packet);
         } catch (IOException e) {
@@ -96,5 +105,5 @@ public class UDPCommunicator {
         List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(packet.getData()));
         return byteList;
     }
-    
+
 }

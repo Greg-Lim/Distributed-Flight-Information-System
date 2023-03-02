@@ -4,18 +4,17 @@ import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
-import com.google.common.primitives.Bytes;
-import com.sc4051.entity.ClientInfo;
 import com.sc4051.entity.Message;
 
+import lombok.Getter;
+
+@Getter
 public abstract class Network {
     UDPCommunicator udpCommunicator;
-    List<List<Bytes>> MessageHistory;
-    List<Integer> MessageSource;
 
     SocketAddress replyAddress;
+    int messageID;
 
     public Network(UDPCommunicator udpCommunicator){
         this.udpCommunicator = udpCommunicator;
@@ -27,7 +26,7 @@ public abstract class Network {
         udpCommunicator.sendMessage(byteList, socketAddress);
     }
 
-    public Message recieve() throws SocketTimeoutException{
+    public Message recieve() throws SocketTimeoutException, CacheHandledReply{
         List<Byte> byteList = new LinkedList<Byte>();
         try{
             byteList = udpCommunicator.recieveMessage();
@@ -37,6 +36,7 @@ public abstract class Network {
             throw e;
         }
         Message message = new Message(byteList);
+        messageID = message.getID();
         return message;
     }
 
@@ -46,6 +46,5 @@ public abstract class Network {
         udpCommunicator.sendMessage(byteList, replyAddress);
     }
 
-    // abstract public Message sendAndRecieve(Message message, int destinationPort);
-    
+    abstract public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException;    
 }

@@ -1,8 +1,6 @@
 package com.sc4051.marshall;
 
-import java.nio.charset.MalformedInputException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.sc4051.entity.FlightInfo;

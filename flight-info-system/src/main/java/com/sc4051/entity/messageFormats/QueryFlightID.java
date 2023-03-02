@@ -3,8 +3,6 @@ package com.sc4051.entity.messageFormats;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.processing.Generated;
-
 import com.sc4051.marshall.MarshallUtils;
 
 import lombok.AllArgsConstructor;
@@ -21,9 +19,9 @@ public class QueryFlightID {
         id = MarshallUtils.unmarshallInt(byteList);
     }
 
-    public void marshall(List<Byte> byteList){
-        MarshallUtils.marshallInt(id, byteList);
-    }
+    // public void marshall(List<Byte> byteList){
+    //     MarshallUtils.marshallInt(id, byteList);
+    // }
 
     public List<Byte> marshall(){
         List<Byte> byteList = new LinkedList<Byte>();

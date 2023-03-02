@@ -1,10 +1,8 @@
 package com.sc4051.marshall;
 
 import com.google.common.primitives.Bytes;
-import com.sc4051.entity.FlightInfo;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 

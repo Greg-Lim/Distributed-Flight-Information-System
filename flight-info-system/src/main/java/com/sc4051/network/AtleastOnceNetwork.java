@@ -6,9 +6,11 @@ import java.net.SocketTimeoutException;
 import com.sc4051.entity.Message;
 
 public class AtleastOnceNetwork extends Network{
+    int maxAttempts;
 
-    public AtleastOnceNetwork(UDPCommunicator udpCommunicator) {
+    public AtleastOnceNetwork(UDPCommunicator udpCommunicator, int maxAttempts) {
         super(udpCommunicator);
+        this.maxAttempts = maxAttempts;
     }
 
     public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException{
@@ -24,9 +26,9 @@ public class AtleastOnceNetwork extends Network{
             } catch (SocketTimeoutException e){
                 System.out.println("Request Timeout");
                 attempts+=1;
-                if (attempts>=5) break;
+                if (attempts>=maxAttempts) break;
                 System.out.printf("Resend attempt %d: ", attempts);
-            }
+            } catch (CacheHandledReply _) {}
         }
 
         throw new NoReplyException();

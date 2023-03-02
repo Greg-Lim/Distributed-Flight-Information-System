@@ -1,8 +1,5 @@
 package com.sc4051;
 
-import com.sc4051.entity.DateTime;
-import com.sc4051.entity.FlightInfo;
-
 public class Main{
     public static void main(String[] args) {
 

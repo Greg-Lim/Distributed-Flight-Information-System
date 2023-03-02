@@ -2,7 +2,6 @@ package com.sc4051.network;
 
 import java.net.SocketAddress;
 import java.util.List;
-import java.util.Random;
 
 public class PoorUDPCommunicator extends UDPCommunicator {
     double sendProbibility;
@@ -13,9 +12,9 @@ public class PoorUDPCommunicator extends UDPCommunicator {
     }
 
     @Override
-    public void sendMessage(List<Byte> byteList, int destinationPort){
+    public void sendMessage(List<Byte> byteList, SocketAddress socketAddress){
         if(isToSend()){
-            super.sendMessage(byteList, destinationPort);
+            super.sendMessage(byteList, socketAddress);
         }
     }
 
