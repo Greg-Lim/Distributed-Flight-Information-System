@@ -2,6 +2,10 @@ package com.sc4051.server;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,8 +17,11 @@ import com.sc4051.entity.messageFormats.QueryFlightID;
 import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
+import com.sc4051.network.UDPCommunicator;
+import com.sc4051.network.AtleastOnceNetwork;
 import com.sc4051.network.Network;
 import com.sc4051.network.NetworkErrorException;
+import com.sc4051.network.PoorUDPCommunicator;
 
 import lombok.Getter;
 
@@ -22,6 +29,7 @@ import lombok.Getter;
 public class Server {
     private static Database db = new Database();
     private static int sendingMessageID;
+    private static UDPCommunicator udpCommunicator;
     private static Network network;
     // private int recievedMessageID;
 
@@ -34,22 +42,39 @@ public class Server {
 
         System.out.println("Starting Server...");
         try{
-            network = new Network(8899);
+            InetAddress addr = InetAddress.getByName("localhost");
+            int port = 8899;
+            SocketAddress socketAddress = new InetSocketAddress(addr, port);
+            
+            udpCommunicator = new PoorUDPCommunicator(socketAddress, -1, 0.9);
+            network = new AtleastOnceNetwork(udpCommunicator);
         } catch (NetworkErrorException e) {
+            System.out.println(e);
+            return;
+        } catch (UnknownHostException e) {
             System.out.println(e);
             return;
         }
         System.out.println("Server running");
-        System.out.println("here 1");
-        Message message = network.recieveMessage();
-        System.out.println("here 2");
 
-        requestHandler(message);
+        while(true){
+            Message message = null;
+            try{
+                message = network.recieve();
+            } catch (Exception _){}
+
+            System.out.println("here 2");
+
+            requestHandler(message);
+        }
 
         
     }
 
     public static void requestHandler(Message message){
+        if (message==null){
+            System.out.println("EROROROEOOROE: if I am priented there is a disaster");
+        }
         System.out.println("here 3");
         List<Byte> replyMessageBody = new LinkedList<Byte>();
         Message replyMessage = new Message();
@@ -75,6 +100,8 @@ public class Server {
         }
 
         System.out.println("here 4");
+
+
         network.sendReply(replyMessage);
         
 

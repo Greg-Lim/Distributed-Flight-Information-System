@@ -14,29 +14,51 @@ import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
 import com.sc4051.marshall.Marshaller;
-import com.sc4051.network.Network;
+import com.sc4051.network.UDPCommunicator;
+import com.sc4051.network.AtleastOnceNetwork;
 import com.sc4051.network.NetworkErrorException;
+import com.sc4051.network.PoorUDPCommunicator;
 
 import java.io.*;
 public class Client{
     Scanner sc = new Scanner(System.in);
-    static int sendingMessageID;
-    static Network network;
+    static AtleastOnceNetwork network;
     static int serverPort;
+    static int sendingMessageID;
+    static SocketAddress socketAddress;
     public static void main(String args[]){
         sendingMessageID=100;
+        System.out.println("Connecting Client...");
         try{
-            network = new Network(6677);
+            InetAddress address = InetAddress.getByName("localhost");
+            int port = 6677;
+            SocketAddress socketAddress = new InetSocketAddress(address, port);
+            UDPCommunicator udpCommunicator = new PoorUDPCommunicator(socketAddress, 1000, 0.5); 
+            network = new AtleastOnceNetwork(udpCommunicator);
         } catch (NetworkErrorException e) {
+            System.out.println(e);
+            return;
+        } catch (UnknownHostException e) {
             System.out.println(e);
             return;
         }
 
+        System.out.println("Client Ready");
+
+
+        InetAddress address;
+        try {
+            address = InetAddress.getByName("localhost");
+        } catch (UnknownHostException e) {
+            System.out.println(e);
+            return;
+        }
         serverPort = 8899;
+        SocketAddress serverAddresss = new InetSocketAddress(address, serverPort);
 
         while(true){
+            sendingMessageID += 1;
             ClientView.printMenu();
-            sendingMessageID +=1;
 
             int choice = ClientView.getUserChoice();
 
@@ -47,19 +69,28 @@ public class Client{
                 case 0: //ping
                     List<Byte> messageBody = Bytes.asList(HexFormat.ofDelimiter(":").parseHex("00:00:00:05:68:65:6c:6c:6f"));//5 hello
                     messageToSend = new Message(999,999,0, messageBody);
-                    network.sendMessage(messageToSend, serverPort);
-                    messageRecieve = network.recieveMessage();
+                    try{
+                        messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
+                    } catch (Exception e){
+                        System.out.println(e);
+                        continue;
+                    }
                     String pingReplySting = MarshallUtils.unmarshallString(messageRecieve.getBody());
                     System.out.println(pingReplySting);
+                    break;
                 case 1: // Search given src and dest 
                     String[] t = ClientView.getSrcnDest();
                     String src = t[0];
                     String dest = t[1];
                     QueryFlightSrcnDest queryFlight = new QueryFlightSrcnDest(src, dest);
                     messageToSend = new Message(sendingMessageID, 0, 1, queryFlight.marshall());
-                    network.sendMessage(messageToSend, serverPort);
+                    try{
+                        messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
+                    } catch (Exception e){
+                        System.out.println(e);
+                        continue;
+                    }
 
-                    messageRecieve = network.recieveMessage();
                     if (messageRecieve.isErr()){
                         messageRecieve.printErr();
                     } else {
