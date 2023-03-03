@@ -1,6 +1,7 @@
 package com.sc4051.server;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -61,19 +62,20 @@ public class DatabaseTest {
 
     @Test
     public void testMakeReservation() {
-        boolean work = false;
+        List<ClientInfo> clientList;
         try{
-            work = db.makeReservation(1010, 5);
-        } catch(Exception notEnoughSeatException){
+            clientList = db.makeReservation(1010, 5);
+            assertEquals(clientList, null);
+        } catch(NotEnoughSeatException e){
             fail("have enough seat");
+        } catch(NoSuchFlightException e){
+            fail("no such glight");
         }
-
-        assertTrue(work);
 
         try{
             db.makeReservation(1010, 20);
             fail("have not enough seat");
         } catch(Exception notEnoughSeatException){}
-
     }
+
 }

@@ -68,7 +68,7 @@ public class Database {
         return flightList;
     }
 
-    public boolean makeReservation(int id, int noSeats) throws NotEnoughSeatException, NoSuchFlightException{
+    public List<ClientInfo> makeReservation(int id, int noSeats) throws NotEnoughSeatException, NoSuchFlightException{
         List<FlightInfo> flights = getFlights(id);
         if(flights.size()==0){
             throw new NoSuchFlightException();
@@ -79,7 +79,7 @@ public class Database {
         }
         else {
             flight.setSeatAvailible(flight.getSeatAvailible() - noSeats);
-            return true;
+            return callbackList.get(flight.getFlightID());
         }
     }
 
@@ -110,7 +110,7 @@ public class Database {
                 tempList.remove(clientInfo);
             }
         }
-        callbackList.put(id, tempList);
+        callbackList.remove(id);
         return tempList;
     }
 

@@ -7,14 +7,18 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale.Category;
 
+import com.sc4051.entity.ClientInfo;
 import com.sc4051.entity.FlightInfo;
 import com.sc4051.entity.Message;
 import com.sc4051.entity.messageFormats.QueryFlightID;
 import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.entity.messageFormats.RequestReserveSeat;
+import com.sc4051.entity.messageFormats.RequestSeatUpdate;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
+import com.sc4051.network.AtleastOnceNetwork;
 import com.sc4051.network.AtmostOnceNetwork;
 import com.sc4051.network.CacheHandledReply;
 import com.sc4051.network.Network;
@@ -25,7 +29,7 @@ import lombok.Getter;
 
 @Getter
 public class Server {
-    final static double SEND_PROBABILITY=0.8;
+    final static double SEND_PROBABILITY=0.6;
     final static int MAX_ATTEMPTS = 5;
     final static int TIMEOUT_TIME = -1; // -1 = never timeout
 
@@ -120,15 +124,27 @@ public class Server {
                 break;
             case 3: // seat reservation flight id + seat number -> update server+ack or error
                 RequestReserveSeat requestReserveSeat = new RequestReserveSeat(message.getBody());
+                List<ClientInfo> callbackList = null;
                 try{
-                    System.out.println("Here 1");
                     System.out.printf("%d %d", requestReserveSeat.getNumberOfSeat(), requestReserveSeat.getFlightID());
-                    db.makeReservation(requestReserveSeat.getFlightID(), requestReserveSeat.getNumberOfSeat());
-                    System.out.println("Here 2");
+                    //reply callbacks
+                    callbackList = db.makeReservation(requestReserveSeat.getFlightID(), requestReserveSeat.getNumberOfSeat());
+                    FlightInfo reservFlightInfo = db.getFlights(requestReserveSeat.getFlightID()).get(0);
+                    String callBackMessageString = String.format("Flight %d has %d seats now", requestReserveSeat.getFlightID(), reservFlightInfo.getSeatAvailible());
+                    replyMessageBody = new LinkedList<Byte>();
+                    MarshallUtils.marshallString(callBackMessageString, replyMessageBody);
+                    if(callbackList != null){
+                        for(ClientInfo clientInfo: callbackList){
+                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 14, replyMessageBody);
+                            network.send(replyMessage, clientInfo.getSocketAddress());
+                        }
+                    }
+
                     String messageString = String.format("%d seats reserved on flight %d", requestReserveSeat.getNumberOfSeat(), requestReserveSeat.getFlightID());
                     replyMessageBody = new LinkedList<Byte>();
                     MarshallUtils.marshallString(messageString, replyMessageBody);
                     replyMessage = new Message(sendingMessageID, message.getID()+1, 13, replyMessageBody);
+
                 } catch (NotEnoughSeatException _) {
                     // System.out.println("Empty");
                     replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Not enought seats on flight %d.", requestReserveSeat.getFlightID()));
@@ -137,7 +153,22 @@ public class Server {
                     replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Error: No Flight ID: %d", requestReserveSeat.getFlightID()));
                 }
                 
-
+                break;
+            case 4: // Seat call back when number of seat change
+                System.out.println(message);
+                RequestSeatUpdate requestSeatUpdate = new RequestSeatUpdate(message.getBody());
+                ClientInfo clientInfo = new ClientInfo(message.getID(), network.getReplyAddress(), requestSeatUpdate.getTimeOut());
+                try{
+                    db.addNotifyFlightList(requestSeatUpdate.getId(), clientInfo);
+                    String messageString = String.format("Seat notification set for flight %d", requestSeatUpdate.getId());
+                    replyMessageBody = new LinkedList<Byte>();
+                    MarshallUtils.marshallString(messageString, replyMessageBody);
+                    replyMessage = new Message(sendingMessageID, message.getID()+1, 14,replyMessageBody);
+                } catch(NoSuchFlightException _){
+                    replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Error: No Flight ID: %d", requestSeatUpdate.getId()));
+                }
+                System.out.println(replyMessage);
+                break;
                 
         }
         network.sendReply(replyMessage);

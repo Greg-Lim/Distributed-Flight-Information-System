@@ -40,6 +40,20 @@ public abstract class Network {
         return message;
     }
 
+    public Message recieve(int customeTimeout) throws SocketTimeoutException, CacheHandledReply{
+        List<Byte> byteList = new LinkedList<Byte>();
+        try{
+            byteList = udpCommunicator.recieveMessage(customeTimeout);
+            replyAddress = udpCommunicator.getReplyAddress();
+        } catch (SocketTimeoutException e){
+            // System.out.println(e);
+            throw e;
+        }
+        Message message = new Message(byteList);
+        messageID = message.getID();
+        return message;
+    }
+
     public void sendReply(Message replyMessage){
         List<Byte> byteList = new LinkedList<Byte>();
         replyMessage.marshall(byteList);
@@ -47,4 +61,5 @@ public abstract class Network {
     }
 
     abstract public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException;    
+
 }

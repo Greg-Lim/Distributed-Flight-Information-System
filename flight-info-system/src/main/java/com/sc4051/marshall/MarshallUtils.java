@@ -19,6 +19,15 @@ public class MarshallUtils {
         res.addAll(intToByteList(i));
     }
 
+    public static long unmarshallLong(List<Byte> byteList) {
+        return longFromByteList(byteList);
+    }
+
+    public static void marshallLong(Object o, List<Byte> res) {
+        long i = (long) o;
+        res.addAll(longToByteList(i));
+    }
+
     public static short unmarshallShort(List<Byte> byteList) {
         return shortFromByteList(byteList);
     }
@@ -144,5 +153,18 @@ public class MarshallUtils {
         byte b = (byte) 0;
         if (v) b = (byte) 1;
         return Bytes.asList(b);
+    }
+
+    private static List<Byte> longToByteList(long v) {
+        byte[] array = ByteBuffer.allocate(Long.BYTES).putLong(v).array();
+        return Bytes.asList(array);
+    }
+
+    private static Long longFromByteList(List<Byte> byteList) {
+        byte[] longBytes = new byte[Long.BYTES];
+        for (int i = 0; i < Long.BYTES; i++) {
+            longBytes[i] = byteList.remove(0);
+        }
+        return ByteBuffer.wrap(longBytes).getLong();
     }
 }

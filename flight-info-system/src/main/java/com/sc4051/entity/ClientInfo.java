@@ -7,7 +7,7 @@ import lombok.*;
 @Getter
 @Setter
 public class ClientInfo {
-    int queryID;
+    int queryID; // This is for callback ack;
     SocketAddress socketAddress;
     long timeout;
 

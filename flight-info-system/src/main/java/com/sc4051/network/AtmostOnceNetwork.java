@@ -43,12 +43,11 @@ public class AtmostOnceNetwork extends Network{
 
         String hashMapKey = super.replyAddress.toString();
         hashMapKey = hashMapKey.concat(Integer.toString(super.getMessageID()));
-        if(cache.containsKey(hashMapKey)){
+        if(cache.containsKey(hashMapKey) & message.isRequest()){
             System.out.println("key match response from cache");
             super.sendReply(cache.get(hashMapKey));
             throw new CacheHandledReply();
         }
-
         return message;
     }
 

@@ -106,4 +106,23 @@ public class UDPCommunicator {
         return byteList;
     }
 
+    public List<Byte> recieveMessage(int customTimeout) throws SocketTimeoutException{
+        // System.out.println("*** here just after call recieve");
+        byte[] recieveBuffer = new byte[100];
+        DatagramPacket packet = new DatagramPacket(recieveBuffer, recieveBuffer.length);
+        try{
+            // System.out.println("*** here just before recieve");
+            if(timeOutTime>=0)
+                socket.setSoTimeout(customTimeout);
+            socket.receive(packet);
+        } catch (SocketTimeoutException e){
+            throw e;
+        } catch (IOException e) {
+            System.out.println(e);
+        }
+        replyAddress = packet.getSocketAddress();
+        List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(packet.getData()));
+        return byteList;
+    }
+
 }

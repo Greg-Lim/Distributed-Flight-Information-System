@@ -67,6 +67,10 @@ public class Message {
         return type == 999;
     }
 
+    public boolean isRequest(){
+        return (type>0 && type<10);
+    }
+
     public void printErr(){
         if(type==999){
             System.out.println(MarshallUtils.unmarshallString(body));

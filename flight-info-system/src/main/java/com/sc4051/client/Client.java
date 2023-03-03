@@ -4,7 +4,9 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.primitives.Bytes;
 import com.sc4051.entity.FlightInfo;
@@ -12,9 +14,11 @@ import com.sc4051.entity.Message;
 import com.sc4051.entity.messageFormats.QueryFlightID;
 import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.entity.messageFormats.RequestReserveSeat;
+import com.sc4051.entity.messageFormats.RequestSeatUpdate;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
 import com.sc4051.network.UDPCommunicator;
+import com.sc4051.network.AtleastOnceNetwork;
 import com.sc4051.network.AtmostOnceNetwork;
 import com.sc4051.network.Network;
 import com.sc4051.network.NetworkErrorException;
@@ -31,12 +35,12 @@ public class Client{
     static int serverPort;
     static int sendingMessageID;
     static SocketAddress socketAddress;
+    static int port = ThreadLocalRandom.current().nextInt(1000, 2000 + 1);
     public static void main(String args[]){
         sendingMessageID=LocalDateTime.now().getMinute()*23+LocalDateTime.now().getSecond()*101;
         System.out.println("Connecting Client...");
         try{
             InetAddress address = InetAddress.getByName("localhost");
-            int port = 6677;
             SocketAddress socketAddress = new InetSocketAddress(address, port);
             UDPCommunicator udpCommunicator = new PoorUDPCommunicator(socketAddress, TIMEOUT_TIME, SEND_PROBABILITY); 
             network = new AtmostOnceNetwork(udpCommunicator, MAX_ATTEMPTS); // need to add both
@@ -151,9 +155,43 @@ public class Client{
                     System.out.println(replyMessageString);
                 }
                 break;
+            case 4: // Seat call back when number of seat change
+                System.out.println("Seat callback...");
+                requestFlightID = ClientView.getFlightIDOnly();
+                int callBackDuration = ClientView.getCallbackDurationMS();
+                RequestSeatUpdate requestSeatUpdate = new RequestSeatUpdate(requestFlightID, callBackDuration);
+                messageToSend = new Message(sendingMessageID, 0, 4, requestSeatUpdate.marshall());
+                System.out.println(messageToSend);
 
+                // contact server
+                try{
+                    messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
+                    System.out.println();
+                } catch(NoReplyException _){
+                    System.out.println("Server did not ack callback request");
+                    return;
+                }
 
+                // check server ack
+                if (messageRecieve.isErr()){
+                    messageRecieve.printErr();
+                    return;
+                } else {
+                    System.out.println(messageRecieve);
+                    String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
+                    System.out.println(replyMessageString);
+                }
 
+                // waits for callback
+                try{
+                    messageRecieve = network.recieve(requestSeatUpdate.getTimeOut());
+                    String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
+                    System.out.println(replyMessageString);
+                } catch(SocketTimeoutException _){
+                    System.out.println("No reply recieved with callback timeout given...");
+                } catch(Exception _){}
+                break;
+           
         }
     }
 }

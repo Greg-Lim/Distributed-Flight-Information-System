@@ -58,6 +58,14 @@ public class ClientView {
         return id;
     }
 
+    public static int getCallbackDurationMS(){
+        int callBackDuration;
+        System.out.println("Enter Callback wait time (seconds): ");
+        callBackDuration = getInt()*1000;
+        return callBackDuration;
+        
+    }
+
 
 
 
