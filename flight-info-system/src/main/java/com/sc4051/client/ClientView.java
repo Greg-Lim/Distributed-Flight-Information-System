@@ -25,6 +25,16 @@ public class ClientView {
         return i;
     }
 
+    public static int getInvocation(){
+        System.out.println("Selct Network invocation\n 1. Atleast once\n 2. Atmost once");
+        int i = getInt();
+        while(i!=1 & i!=2){
+            System.out.println("Invalid");
+            i = getInvocation();
+        }
+        return i;
+    }
+
     public static String[] getSrcnDest(){
         String[] SrcnDest = new String[2];
         System.out.println("\n========== [1] Find Flight with source and dest ==========");
@@ -62,8 +72,7 @@ public class ClientView {
         int callBackDuration;
         System.out.println("Enter Callback wait time (seconds): ");
         callBackDuration = getInt()*1000;
-        return callBackDuration;
-        
+        return callBackDuration;   
     }
 
 

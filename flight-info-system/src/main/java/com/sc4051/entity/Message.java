@@ -76,4 +76,30 @@ public class Message {
             System.out.println(MarshallUtils.unmarshallString(body));
         } else {System.out.println("Something wrong");}
     }
+
+    public String toString(){
+        return String.format("Message(ID=%d, ack=%d, type=%d, body=\"%s\")", ID, ack, type, bytesToHex(body));
+    }
+
+
+
+
+
+    private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+    public static String bytesToHex(List<Byte> byteList) {
+        byte[] bytes = Bytes.toArray(byteList);
+        char[] hexChars = new char[bytes.length * 3];
+        int fourZero = 0;
+        for (int j = 0; j < bytes.length; j++) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 3] = HEX_ARRAY[v >>> 4];
+            hexChars[j * 3 + 1] = HEX_ARRAY[v & 0x0F];
+            if (hexChars[j * 3] == '0' & hexChars[j * 3 + 1]=='0') 
+                fourZero+=2;
+            else fourZero = 0;
+            if(fourZero == 8) break;
+            hexChars[j * 3 + 2] = ' ';
+        }
+        return new String(hexChars);
+}
 }

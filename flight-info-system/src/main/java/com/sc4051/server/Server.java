@@ -29,9 +29,13 @@ import lombok.Getter;
 
 @Getter
 public class Server {
-    final static double SEND_PROBABILITY=0.6;
-    final static int MAX_ATTEMPTS = 5;
+    // final static double SEND_PROBABILITY=0.6;
+    // final static int MAX_ATTEMPTS = 5;
     final static int TIMEOUT_TIME = -1; // -1 = never timeout
+    static int port = 2222;
+    static double sendProbability = 0.8;
+    static int mode = 1; //1 ALO, 2 AMO
+    static int maxAttempts = 5;
 
     private static Database db = new Database();
     private static int sendingMessageID;
@@ -40,6 +44,12 @@ public class Server {
     // private int recievedMessageID;
 
     public static void main(String[] args) {
+        port = Integer.parseInt(args[0]);
+        mode = Integer.parseInt(args[1]);
+        sendProbability = Double.parseDouble(args[2]);
+        maxAttempts = Integer.parseInt(args[3]);
+        // System.out.printf("%d %d %f %d",port, mode, sendProbability, maxAttempts);
+
         start();
     }
 
@@ -52,8 +62,13 @@ public class Server {
             int port = 8899;
             SocketAddress socketAddress = new InetSocketAddress(addr, port);
             
-            udpCommunicator = new PoorUDPCommunicator(socketAddress, TIMEOUT_TIME, SEND_PROBABILITY);
-            network = new AtmostOnceNetwork(udpCommunicator, MAX_ATTEMPTS);
+            udpCommunicator = new PoorUDPCommunicator(socketAddress, TIMEOUT_TIME, sendProbability);
+            
+            if(mode==1)
+                network = new AtleastOnceNetwork(udpCommunicator, maxAttempts);
+            else if(mode==2)
+                network = new AtmostOnceNetwork(udpCommunicator, maxAttempts);
+            else return;
         } catch (NetworkErrorException e) {
             System.out.println(e);
             return;
@@ -84,12 +99,12 @@ public class Server {
         if (message==null){
             System.out.println("EROROROEOOROE: if I am printed there is a disaster");
         }
+        System.out.println("recieved: "+message.toString());
         List<Byte> replyMessageBody = new LinkedList<Byte>();
         Message replyMessage = new Message();
-        System.out.println(message.getBody());
         switch(message.getType()){
             case 0: // reply ping
-                replyMessage = new Message(sendingMessageID, message.getID()+1, 999, message.getBody());
+                replyMessage = new Message(sendingMessageID, message.getID()+1, 10, message.getBody());
                 break;
             case 1: // find all flight given src and dest
                 QueryFlightSrcnDest queryFlightSrcnDest = new QueryFlightSrcnDest(message.getBody());
@@ -119,7 +134,7 @@ public class Server {
                     CustomMarshaller.marshallFlightList(flightListFromID, replyMessageBody);
                     replyMessage = new Message(sendingMessageID, message.getID()+1, 12, replyMessageBody);
                 }
-                System.out.println(replyMessage);
+                // System.out.println(replyMessage);
 
                 break;
             case 3: // seat reservation flight id + seat number -> update server+ack or error
@@ -135,7 +150,7 @@ public class Server {
                     MarshallUtils.marshallString(callBackMessageString, replyMessageBody);
                     if(callbackList != null){
                         for(ClientInfo clientInfo: callbackList){
-                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 14, replyMessageBody);
+                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 13, replyMessageBody);
                             network.send(replyMessage, clientInfo.getSocketAddress());
                         }
                     }
@@ -167,10 +182,15 @@ public class Server {
                 } catch(NoSuchFlightException _){
                     replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Error: No Flight ID: %d", requestSeatUpdate.getId()));
                 }
-                System.out.println(replyMessage);
+                break;
+            
+            case 5: 
+
                 break;
                 
         }
+        sendingMessageID+=1;
+        System.out.println("reply: "+replyMessage.toString());
         network.sendReply(replyMessage);
         
 

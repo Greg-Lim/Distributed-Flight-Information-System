@@ -44,8 +44,9 @@ public class AtmostOnceNetwork extends Network{
         String hashMapKey = super.replyAddress.toString();
         hashMapKey = hashMapKey.concat(Integer.toString(super.getMessageID()));
         if(cache.containsKey(hashMapKey) & message.isRequest()){
-            System.out.println("key match response from cache");
-            super.sendReply(cache.get(hashMapKey));
+            Message reply = cache.get(hashMapKey);
+            System.out.println(String.format("Message match cache, replying with message id %d", reply.getID()));//TODO: need to change log message
+            super.sendReply(reply);
             throw new CacheHandledReply();
         }
         return message;
@@ -57,10 +58,6 @@ public class AtmostOnceNetwork extends Network{
         hashMapKey = hashMapKey.concat(Integer.toString(super.messageID));
 
         cache.put(hashMapKey, replyMessage);
-        // System.out.println("Cache: ");
-        // System.out.println(cache);
-
-        
         super.sendReply(replyMessage);
     }
 }

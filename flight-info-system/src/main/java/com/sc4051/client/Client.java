@@ -4,7 +4,6 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -26,9 +25,13 @@ import com.sc4051.network.NoReplyException;
 import com.sc4051.network.PoorUDPCommunicator;
 
 public class Client{
-    final static double SEND_PROBABILITY=0.8;
-    final static int MAX_ATTEMPTS = 5;
+    // final static double SEND_PROBABILITY=0.8;
+    // final static int MAX_ATTEMPTS = 5;
     final static int TIMEOUT_TIME = 1000;
+
+    static int mode = 1;
+    static double sendProbability=0.8;
+    static int maxAttempts = 5;
 
     Scanner sc = new Scanner(System.in);
     static Network network;
@@ -37,13 +40,24 @@ public class Client{
     static SocketAddress socketAddress;
     static int port = ThreadLocalRandom.current().nextInt(1000, 2000 + 1);
     public static void main(String args[]){
+        port = Integer.parseInt(args[0]);
+        mode = Integer.parseInt(args[1]);
+        sendProbability = Double.parseDouble(args[2]);
+        maxAttempts = Integer.parseInt(args[3]);
+
         sendingMessageID=LocalDateTime.now().getMinute()*23+LocalDateTime.now().getSecond()*101;
         System.out.println("Connecting Client...");
         try{
             InetAddress address = InetAddress.getByName("localhost");
             SocketAddress socketAddress = new InetSocketAddress(address, port);
-            UDPCommunicator udpCommunicator = new PoorUDPCommunicator(socketAddress, TIMEOUT_TIME, SEND_PROBABILITY); 
-            network = new AtmostOnceNetwork(udpCommunicator, MAX_ATTEMPTS); // need to add both
+            UDPCommunicator udpCommunicator = new PoorUDPCommunicator(socketAddress, TIMEOUT_TIME, sendProbability); 
+            
+            if(mode==1) 
+                network = new AtleastOnceNetwork(udpCommunicator, maxAttempts);
+            else if (mode==2)
+                network = new AtmostOnceNetwork(udpCommunicator, maxAttempts);
+            else return;
+
         } catch (NetworkErrorException e) {
             System.out.println(e);
             return;
@@ -53,8 +67,6 @@ public class Client{
         }
 
         System.out.println("Client Ready");
-
-
         InetAddress address;
         try {
             address = InetAddress.getByName("localhost");
@@ -93,6 +105,7 @@ public class Client{
                     System.out.println("No Response");
                     return;
                 }
+                System.out.println(messageRecieve.toString()); //should be log
                 String pingReplySting = MarshallUtils.unmarshallString(messageRecieve.getBody());
                 System.out.print("Ping reply: ");
                 System.out.println(pingReplySting);
@@ -113,6 +126,7 @@ public class Client{
                 if (messageRecieve.isErr()){
                     messageRecieve.printErr();
                 } else {
+                    System.out.println(messageRecieve.toString()); //should be log
                     List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(messageRecieve.getBody());
                     System.out.println(flightInfoList.toString());
                 }
@@ -131,6 +145,7 @@ public class Client{
                 if (messageRecieve.isErr()){
                     messageRecieve.printErr();
                 } else {
+                    System.out.println(messageRecieve.toString()); //should be log               
                     List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(messageRecieve.getBody());
                     System.out.println(flightInfoList.get(0).toString());
                 }
