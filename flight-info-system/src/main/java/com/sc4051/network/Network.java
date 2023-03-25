@@ -60,6 +60,21 @@ public abstract class Network {
         udpCommunicator.sendMessage(byteList, replyAddress);
     }
 
-    abstract public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException;    
+    abstract public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException;
+
+    // public Message recieveAndAck(int customeTimeout) throws SocketTimeoutException, CacheHandledReply{
+    //     List<Byte> byteList = new LinkedList<Byte>();
+    //     try{
+    //         byteList = udpCommunicator.recieveMessage(customeTimeout);
+    //     } catch (SocketTimeoutException e){
+    //         // System.out.println(e);
+    //         throw e;
+    //     }
+    //     Message message = new Message(byteList);
+    //     Message ack = new Message(0, message.getID()+1, message.getType()*10+1, "ack");
+    //     send(ack, replyAddress);
+    //     messageID = message.getID();
+    //     return message;
+    // }   
 
 }

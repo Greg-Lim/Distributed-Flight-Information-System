@@ -6,6 +6,7 @@ import lombok.*;
 
 @Getter
 @Setter
+@ToString
 public class ClientInfo {
     int queryID; // This is for callback ack;
     SocketAddress socketAddress;

@@ -2,6 +2,8 @@ package com.sc4051.network;
 
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.sc4051.entity.Message;
 
@@ -30,8 +32,23 @@ public class AtleastOnceNetwork extends Network{
                 System.out.printf("Resend attempt %d: ", attempts);
             } catch (CacheHandledReply _) {}
         }
-
         throw new NoReplyException();
     }
+
+    // public Message recieveAndAck(int customeTimeout) throws SocketTimeoutException, CacheHandledReply{
+    //     List<Byte> byteList = new LinkedList<Byte>();
+    //     try{
+    //         byteList = udpCommunicator.recieveMessage(customeTimeout);
+    //     } catch (SocketTimeoutException e){
+    //         // System.out.println(e);
+    //         throw e;
+    //     }
+    //     Message message = new Message(byteList);
+    //     Message ack = new Message(0, message.getID()+1, message.getType()*10+1, "ack");
+    //     super.send(ack, replyAddress);
+    //     messageID = message.getID();
+    //     return message;
+    // }
+    
     
 }

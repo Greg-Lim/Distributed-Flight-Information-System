@@ -18,6 +18,7 @@ import lombok.Setter;
 @Setter
 public class UDPCommunicator {
     // int destinationPort;
+    static final int bufferSize = 1000;
     DatagramSocket socket = null;
     InetAddress host = null;
     int timeOutTime = 1000;
@@ -66,7 +67,7 @@ public class UDPCommunicator {
         // List<Byte> byteList = new LinkedList<Byte>();
         // message.marshall(byteList);
         byte[] bytes = Bytes.toArray(byteList);
-        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, socketAddress); //I really dk why this dont work
+        DatagramPacket packet = new DatagramPacket(bytes, bytes.length, socketAddress);
         try{
             socket.send(packet);
         } catch (IOException e) {
@@ -89,7 +90,7 @@ public class UDPCommunicator {
 
     public List<Byte> recieveMessage() throws SocketTimeoutException{
         // System.out.println("*** here just after call recieve");
-        byte[] recieveBuffer = new byte[100];
+        byte[] recieveBuffer = new byte[bufferSize];
         DatagramPacket packet = new DatagramPacket(recieveBuffer, recieveBuffer.length);
         try{
             // System.out.println("*** here just before recieve");
@@ -108,7 +109,7 @@ public class UDPCommunicator {
 
     public List<Byte> recieveMessage(int customTimeout) throws SocketTimeoutException{
         // System.out.println("*** here just after call recieve");
-        byte[] recieveBuffer = new byte[100];
+        byte[] recieveBuffer = new byte[bufferSize];
         DatagramPacket packet = new DatagramPacket(recieveBuffer, recieveBuffer.length);
         try{
             // System.out.println("*** here just before recieve");

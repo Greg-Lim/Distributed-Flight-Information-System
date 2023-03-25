@@ -29,6 +29,16 @@ public class Message {
         this.body = Bytes.asList(HexFormat.ofDelimiter(":").parseHex("00:00:00:05:68:65:6c:6c:6f")); //5 Hello
     }
 
+    public Message(int ID, int ack, int type, String msg) {
+        this.type = type;
+        List<Byte> body = new LinkedList<Byte>();
+        MarshallUtils.marshallString(msg, body);
+        this.body = body;
+        this.ID = ID;
+        this.ack = ack;
+
+    }
+
     public Message(int ID, int ack, String errorMsg){
         this.type = 999;
         List<Byte> body = new LinkedList<Byte>();
@@ -101,5 +111,7 @@ public class Message {
             hexChars[j * 3 + 2] = ' ';
         }
         return new String(hexChars);
-}
+    }
+
+
 }

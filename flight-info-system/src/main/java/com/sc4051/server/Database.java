@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
+import java.util.Vector;
 
 import com.sc4051.entity.ClientInfo;
 import com.sc4051.entity.DateTime;
@@ -79,7 +81,7 @@ public class Database {
         }
         else {
             flight.setSeatAvailible(flight.getSeatAvailible() - noSeats);
-            return callbackList.get(flight.getFlightID());
+            return getNotifyFlightList(flight.getFlightID());
         }
     }
 
@@ -124,8 +126,28 @@ public class Database {
 
         flight.setAirfare(flightPrice);
         return;
-
-
     }
 
+    public int makeNewFlightID() {
+        ArrayList<Integer> allID = new ArrayList<Integer>();
+        for(FlightInfo i: allFlights) 
+            allID.add(i.getFlightID());
+        while(true){
+            Random rand = new Random();
+            int r = rand.nextInt(9999);
+            if (! allID.contains(r)) return r;
+        }
+        
+    }
+
+    public void addFlight(FlightInfo flightInfo){
+        allFlights.add(flightInfo);
+    }
+
+    public void printALL(){
+        for(FlightInfo i :allFlights)
+            System.out.println(i.toString());
+        System.out.println(callbackList.entrySet().toString());
+           
+    }
 }

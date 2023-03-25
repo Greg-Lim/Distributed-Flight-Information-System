@@ -4,12 +4,15 @@ import java.net.*;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.google.common.primitives.Bytes;
+import com.sc4051.entity.DateTime;
 import com.sc4051.entity.FlightInfo;
 import com.sc4051.entity.Message;
+import com.sc4051.entity.messageFormats.AddFlight;
 import com.sc4051.entity.messageFormats.QueryFlightID;
 import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.entity.messageFormats.RequestReserveSeat;
@@ -97,26 +100,26 @@ public class Client{
         int requestFlightID;
 
         switch(choice){
-            case 0: //ping
+            case 0: //debug ping
                 List<Byte> messageBody = Bytes.asList(HexFormat.ofDelimiter(":").parseHex("00:00:00:0c:68:65:6c:6c:6f:20:77:6f:72:6c:64:21"));//5 hello world!
                 messageToSend = new Message(sendingMessageID,0,0, messageBody);
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log
                 try{
                     messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
                 } catch (NoReplyException e){
                     System.out.println("No Response");
                     return;
                 }
-                System.out.println(messageRecieve.toString()); //should be log
+                System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                 String pingReplySting = MarshallUtils.unmarshallString(messageRecieve.getBody());
                 System.out.print("Ping reply: ");
                 System.out.println(pingReplySting);
                 break;
             case 1: // Search given src and dest 
                 String[] t = ClientView.getSrcnDest();
-                String src = t[0];
-                String dest = t[1];
-                QueryFlightSrcnDest queryFlight = new QueryFlightSrcnDest(src, dest);
+                QueryFlightSrcnDest queryFlight = new QueryFlightSrcnDest(t[0], t[1]);
                 messageToSend = new Message(sendingMessageID, 0, 1, queryFlight.marshall());
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log
                 try{
                     messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
                 } catch (NoReplyException e){
@@ -127,15 +130,18 @@ public class Client{
                 if (messageRecieve.isErr()){
                     messageRecieve.printErr();
                 } else {
-                    System.out.println(messageRecieve.toString()); //should be log
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(messageRecieve.getBody());
-                    System.out.println(flightInfoList.toString());
+                    for(FlightInfo f : flightInfoList){
+                        System.out.println(f.toString());
+                    }
                 }
                 break;
             case 2:
                 requestFlightID = ClientView.getFlightID();
                 QueryFlightID queryFlightID = new QueryFlightID(requestFlightID);
                 messageToSend = new Message(sendingMessageID, 0, 2, queryFlightID.marshall());
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log
                 try{
                     messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
                 } catch (NoReplyException e){
@@ -146,7 +152,7 @@ public class Client{
                 if (messageRecieve.isErr()){
                     messageRecieve.printErr();
                 } else {
-                    System.out.println(messageRecieve.toString()); //should be log               
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     List<FlightInfo> flightInfoList = CustomMarshaller.unmarshallFlightList(messageRecieve.getBody());
                     System.out.println(flightInfoList.get(0).toString());
                 }
@@ -156,6 +162,7 @@ public class Client{
                 int numberOfSeat = ClientView.getNumberOfSeat();
                 RequestReserveSeat requestReserveSeat = new RequestReserveSeat(requestFlightID, numberOfSeat);
                 messageToSend = new Message(sendingMessageID, 0, 3, requestReserveSeat.marshall());
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log //should be log
                 try{
                     messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
                 } catch (NoReplyException e){
@@ -166,6 +173,7 @@ public class Client{
                 if (messageRecieve.isErr()){
                     messageRecieve.printErr();
                 } else {
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     System.out.println(messageRecieve);
                     String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
                     System.out.println(replyMessageString);
@@ -177,9 +185,7 @@ public class Client{
                 int callBackDuration = ClientView.getCallbackDurationMS();
                 RequestSeatUpdate requestSeatUpdate = new RequestSeatUpdate(requestFlightID, callBackDuration);
                 messageToSend = new Message(sendingMessageID, 0, 4, requestSeatUpdate.marshall());
-                System.out.println(messageToSend);
-
-                // contact server
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log
                 try{
                     messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
                     System.out.println();
@@ -193,7 +199,7 @@ public class Client{
                     messageRecieve.printErr();
                     return;
                 } else {
-                    System.out.println(messageRecieve);
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
                     System.out.println(replyMessageString);
                 }
@@ -201,11 +207,15 @@ public class Client{
                 // waits for callback
                 try{
                     messageRecieve = network.recieve(requestSeatUpdate.getTimeOut());
+                    System.out.println("asdfasdf");
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
                     System.out.println(replyMessageString);
                 } catch(SocketTimeoutException _){
                     System.out.println("No reply recieved with callback timeout given...");
-                } catch(Exception _){}
+                } catch(Exception _){
+                    System.out.println("EREREREREORROOOOOEOREORE");
+                }
                 break;
             
             case 5:
@@ -214,6 +224,7 @@ public class Client{
                 int key = ClientView.getSessionID();
                 SetFlightPrice setFlightPrice = new SetFlightPrice(requestFlightID, flightPrice, key); // to fix
                 messageToSend = new Message(sendingMessageID, 0, 5, setFlightPrice.marshall());
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log
                 try{
                     messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
                 } catch (NoReplyException e){
@@ -224,11 +235,55 @@ public class Client{
                 if (messageRecieve.isErr()){
                     messageRecieve.printErr();
                 } else {
-                    System.out.println(messageRecieve);
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
                     System.out.println(replyMessageString);
                 }
                 break;
+            case 6:
+
+                String source;
+                String dest;
+                DateTime departureTime;
+                double airfare;
+                int seatAvailible;
+
+                System.out.println(String.format("Auto generate flight? (y)"));
+                if(ClientView.isY()){
+                    source = ClientRandomData.get3Char();
+                    dest = ClientRandomData.get3Char();
+                    departureTime = ClientRandomData.getRandDateTime();
+                    airfare = ClientRandomData.getFlightPrice();
+                    seatAvailible = ClientRandomData.getSeatAvailible();
+                    System.out.println(String.format("Fligh added is from %s to %s, at %s, costing %.2f, with %d seats", source, dest, departureTime.toNiceString(), airfare, seatAvailible));
+                } else {
+                    source = ClientView.getSrc();
+                    dest = ClientView.getDest();
+                    departureTime = ClientView.getDepartureTime();
+                    airfare = ClientView.getFlightPrice();
+                    seatAvailible = ClientView.getFlightSeats();
+                }
+                
+                AddFlight addFlight = new AddFlight(source,dest, departureTime, airfare, seatAvailible);
+
+                messageToSend = new Message(sendingMessageID, 0, 6, addFlight.marshall());
+                System.out.println("Sending: "+ messageToSend.toString()); //should be log
+                try{
+                    messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
+                } catch (NoReplyException e){
+                    System.out.println("No Response");
+                    return;
+                }
+
+                if (messageRecieve.isErr()){
+                    messageRecieve.printErr();
+                } else {
+                    System.out.println("Recieved: "+messageRecieve.toString()); //should be log
+                    String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
+                    System.out.println(replyMessageString);
+                }
+                break;
+
         }
     }
 }
