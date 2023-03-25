@@ -14,7 +14,7 @@ public class ClientView {
         System.out.println("[2] Query Flight with ID");
         System.out.println("[3] Make Flight Reservation");
         System.out.println("[4] Monitor Flight with ID");
-        System.out.println("[5] ???"); //add 2 more
+        System.out.println("[5] Set Airfare (Need autenticate)");
         System.out.println("[6] ???");
         System.out.println("[7] Exit Application");
     }
@@ -75,6 +75,18 @@ public class ClientView {
         return callBackDuration;   
     }
 
+    public static double getFlightPrice() {
+        double price;
+        System.out.println("Enter Price of Flight");
+        price = getDouble();
+        return price;  
+    }
+
+    
+    public static int getSessionID() {
+        System.out.println("Enter Session ID (hint: hardcoded as 31337): ");
+        return getInt();
+    }
 
 
 
@@ -89,6 +101,16 @@ public class ClientView {
         }
     }
 
+    public static double getDouble(){
+        try{
+            double i = sc.nextDouble();
+            return i;
+        } catch(Exception e) {
+            System.out.println("Invalid double");
+            return getDouble();
+        }
+    }
+
     public static String getStringUpper(){
         try{
             return sc.nextLine().toUpperCase().trim();
@@ -97,4 +119,7 @@ public class ClientView {
             return getStringUpper();
         }
     }
+
+
+    
 }

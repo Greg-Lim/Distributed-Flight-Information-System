@@ -114,4 +114,18 @@ public class Database {
         return tempList;
     }
 
+    public void setFlightPrice(int flightID, double flightPrice) throws NoSuchFlightException{
+        List<FlightInfo> flights = getFlights(flightID);
+        if(flights.size()==0){
+            throw new NoSuchFlightException();
+        }
+
+        FlightInfo flight = flights.get(0);
+
+        flight.setAirfare(flightPrice);
+        return;
+
+
+    }
+
 }

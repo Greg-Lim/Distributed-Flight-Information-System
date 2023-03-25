@@ -14,6 +14,7 @@ import com.sc4051.entity.messageFormats.QueryFlightID;
 import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.entity.messageFormats.RequestReserveSeat;
 import com.sc4051.entity.messageFormats.RequestSeatUpdate;
+import com.sc4051.entity.messageFormats.SetFlightPrice;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
 import com.sc4051.network.UDPCommunicator;
@@ -206,7 +207,28 @@ public class Client{
                     System.out.println("No reply recieved with callback timeout given...");
                 } catch(Exception _){}
                 break;
-           
+            
+            case 5:
+                requestFlightID = ClientView.getFlightIDOnly();
+                double flightPrice = ClientView.getFlightPrice();
+                int key = ClientView.getSessionID();
+                SetFlightPrice setFlightPrice = new SetFlightPrice(requestFlightID, flightPrice, key); // to fix
+                messageToSend = new Message(sendingMessageID, 0, 5, setFlightPrice.marshall());
+                try{
+                    messageRecieve = network.sendAndRecieve(messageToSend, serverAddresss);
+                } catch (NoReplyException e){
+                    System.out.println("No Response");
+                    return;
+                }
+
+                if (messageRecieve.isErr()){
+                    messageRecieve.printErr();
+                } else {
+                    System.out.println(messageRecieve);
+                    String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
+                    System.out.println(replyMessageString);
+                }
+                break;
         }
     }
 }

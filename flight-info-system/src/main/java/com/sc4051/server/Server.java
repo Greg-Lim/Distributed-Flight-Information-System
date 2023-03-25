@@ -16,6 +16,7 @@ import com.sc4051.entity.messageFormats.QueryFlightID;
 import com.sc4051.entity.messageFormats.QueryFlightSrcnDest;
 import com.sc4051.entity.messageFormats.RequestReserveSeat;
 import com.sc4051.entity.messageFormats.RequestSeatUpdate;
+import com.sc4051.entity.messageFormats.SetFlightPrice;
 import com.sc4051.marshall.CustomMarshaller;
 import com.sc4051.marshall.MarshallUtils;
 import com.sc4051.network.AtleastOnceNetwork;
@@ -150,7 +151,7 @@ public class Server {
                     MarshallUtils.marshallString(callBackMessageString, replyMessageBody);
                     if(callbackList != null){
                         for(ClientInfo clientInfo: callbackList){
-                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 13, replyMessageBody);
+                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 14, replyMessageBody);
                             network.send(replyMessage, clientInfo.getSocketAddress());
                         }
                     }
@@ -184,7 +185,24 @@ public class Server {
                 }
                 break;
             
-            case 5: 
+            case 5: //set flight price
+                SetFlightPrice setFlightPrice = new SetFlightPrice(message.getBody());
+                if(setFlightPrice.getSessionKey()!=31337){ //TODO: hardcoded session autentication
+                    replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Invalid session ID"));
+                    break;
+                }
+                try{
+                    db.setFlightPrice(setFlightPrice.getFlightID(), setFlightPrice.getFlightPrice());
+                    String messageString = String.format("Price of flight %d changed to %.2f", setFlightPrice.getFlightID(), setFlightPrice.getFlightPrice());
+                    replyMessageBody = new LinkedList<Byte>();
+                    MarshallUtils.marshallString(messageString, replyMessageBody);
+                    replyMessage = new Message(sendingMessageID, message.getID()+1, 15,replyMessageBody);
+                } catch (NoSuchFlightException e){
+                    replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: No Flight ID: %d", setFlightPrice.getFlightID()));
+                }
+                break;
+
+            case 6: //no-idenpotent maybe increase price of flights?
 
                 break;
                 
