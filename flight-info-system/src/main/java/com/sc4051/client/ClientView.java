@@ -25,7 +25,7 @@ public class ClientView {
 
     public static int getUserChoice(){
         int i = getInt();
-        sc.nextLine();
+        // sc.nextLine();
         return i;
     }
 
@@ -109,8 +109,10 @@ public class ClientView {
     public static int getInt(){
         try{
             int i = sc.nextInt();
+            sc.nextLine();
             return i;
         } catch(Exception e) {
+            sc.nextLine();
             System.out.println("Invalid int");
             return getInt();
         }
@@ -119,8 +121,10 @@ public class ClientView {
     public static double getDouble(){
         try{
             double i = sc.nextDouble();
+            sc.nextLine();
             return i;
         } catch(Exception e) {
+            sc.nextLine();
             System.out.println("Invalid double");
             return getDouble();
         }

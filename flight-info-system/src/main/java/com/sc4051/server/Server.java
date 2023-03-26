@@ -156,6 +156,7 @@ public class Server {
                     if(callbackList != null){
                         for(ClientInfo clientInfo: callbackList){
                             replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 14, replyMessageBody);
+                            System.out.println(String.format("Sending Callback: %s", replyMessage.toString()));
                             network.send(replyMessage, clientInfo.getSocketAddress());
                         }
                     }
@@ -217,8 +218,7 @@ public class Server {
 
                 replyMessage = new Message(sendingMessageID, message.getID()+1, 16, String.format("New fligh added with ID: %d", flightID));
 
-                break;
-                
+                break;              
         }
         sendingMessageID+=1;
         oldID = message.getID();

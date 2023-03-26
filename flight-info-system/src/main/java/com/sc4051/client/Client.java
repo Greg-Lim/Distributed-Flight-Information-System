@@ -86,6 +86,7 @@ public class Client{
             ClientView.printMenu();
 
             int choice = ClientView.getUserChoice();
+            if(choice == 7) return;
             choiceHandler(choice, serverAddresss);
 
         }
@@ -207,7 +208,6 @@ public class Client{
                 // waits for callback
                 try{
                     messageRecieve = network.recieve(requestSeatUpdate.getTimeOut());
-                    System.out.println("asdfasdf");
                     System.out.println("Recieved: "+messageRecieve.toString()); //should be log
                     String replyMessageString = MarshallUtils.unmarshallString(messageRecieve.getBody());
                     System.out.println(replyMessageString);

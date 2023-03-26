@@ -8,10 +8,12 @@ import com.sc4051.marshall.MarshallUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 public class RequestSeatUpdate {
     int id;
     int timeOut;

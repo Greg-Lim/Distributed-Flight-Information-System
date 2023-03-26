@@ -107,13 +107,14 @@ public class Database {
     public List<ClientInfo> getNotifyFlightList(int id){
         List<ClientInfo> tempList = callbackList.get(id);
         if(tempList==null) return Collections.<ClientInfo>emptyList();
+        List<ClientInfo> tempList2 = new ArrayList<ClientInfo>(tempList);
         for(ClientInfo clientInfo : tempList){
             if(clientInfo.isTimeout()){
-                tempList.remove(clientInfo);
+                tempList2.remove(clientInfo);
             }
         }
         callbackList.remove(id);
-        return tempList;
+        return tempList2;
     }
 
     public void setFlightPrice(int flightID, double flightPrice) throws NoSuchFlightException{
