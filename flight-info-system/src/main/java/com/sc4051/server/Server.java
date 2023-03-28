@@ -7,7 +7,6 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale.Category;
 
 import com.sc4051.entity.ClientInfo;
 import com.sc4051.entity.FlightInfo;
@@ -25,7 +24,6 @@ import com.sc4051.network.AtmostOnceNetwork;
 import com.sc4051.network.CacheHandledReply;
 import com.sc4051.network.Network;
 import com.sc4051.network.NetworkErrorException;
-import com.sc4051.network.NoReplyException;
 import com.sc4051.network.PoorUDPCommunicator;
 
 import lombok.Getter;
@@ -43,14 +41,12 @@ public class Server {
     private static PoorUDPCommunicator udpCommunicator;
     private static Network network;
     private static int oldID;
-    // private int recievedMessageID;
 
     public static void main(String[] args) {
         port = Integer.parseInt(args[0]);
         mode = Integer.parseInt(args[1]);
         sendProbability = Double.parseDouble(args[2]);
         maxAttempts = Integer.parseInt(args[3]);
-        // System.out.printf("%d %d %f %d",port, mode, sendProbability, maxAttempts);
 
         start();
     }
@@ -81,25 +77,25 @@ public class Server {
         System.out.println("Server running");
 
         while(true){
+            System.out.println("");
             Message message = null;
             try{
                 message = network.recieve();
-            } catch (CacheHandledReply _){
+            } catch (CacheHandledReply discard){
                 continue;
             }
-            catch (SocketTimeoutException _){
+            catch (SocketTimeoutException discard){
                 continue;
             }
 
             requestHandler(message);
         }
-
-        
     }
 
     public static void requestHandler(Message message){
         if (message==null){
-            System.out.println("EROROROEOOROE: if I am printed there is a disaster");
+            System.out.println("ERROR: NULL MESSAGE"); // this should not run
+            System.exit(-1);
         }
         System.out.println("recieved: "+message.toString());
         List<Byte> replyMessageBody = new LinkedList<Byte>();
@@ -108,7 +104,6 @@ public class Server {
             case 0: // reply ping
                 replyMessage = new Message(sendingMessageID, message.getID()+1, 10, message.getBody());
                 if(message.getID()!=oldID){
-                    System.out.println("=====DB Dump====");
                     db.printALL();
                 }
                 break;
@@ -127,7 +122,7 @@ public class Server {
                     replyMessage = new Message(sendingMessageID, message.getID()+1, 11, replyMessageBody);
                 }
                 break;
-            case 2:
+            case 2: // find flight given an ID
                 QueryFlightID queryFlightID = new QueryFlightID(message.getBody());
                 int id = queryFlightID.getId();
                 List<FlightInfo> flightListFromID = db.getFlights(id);
@@ -140,8 +135,6 @@ public class Server {
                     CustomMarshaller.marshallFlightList(flightListFromID, replyMessageBody);
                     replyMessage = new Message(sendingMessageID, message.getID()+1, 12, replyMessageBody);
                 }
-                // System.out.println(replyMessage);
-
                 break;
             case 3: // seat reservation flight id + seat number -> update server+ack or error
                 RequestReserveSeat requestReserveSeat = new RequestReserveSeat(message.getBody());
@@ -155,28 +148,26 @@ public class Server {
                     MarshallUtils.marshallString(callBackMessageString, replyMessageBody);
                     if(callbackList != null){
                         for(ClientInfo clientInfo: callbackList){
-                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 14, replyMessageBody);
+                            replyMessage = new Message(sendingMessageID, clientInfo.getQueryID()+1, 142, replyMessageBody);
                             System.out.println(String.format("Sending Callback: %s", replyMessage.toString()));
                             network.send(replyMessage, clientInfo.getSocketAddress());
                         }
                     }
 
+                    // reply client booking the seat
                     String messageString = String.format("%d seats reserved on flight %d", requestReserveSeat.getNumberOfSeat(), requestReserveSeat.getFlightID());
                     replyMessageBody = new LinkedList<Byte>();
                     MarshallUtils.marshallString(messageString, replyMessageBody);
                     replyMessage = new Message(sendingMessageID, message.getID()+1, 13, replyMessageBody);
 
-                } catch (NotEnoughSeatException _) {
-                    // System.out.println("Empty");
+                } catch (NotEnoughSeatException discard) {
                     replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Not enought seats on flight %d.", requestReserveSeat.getFlightID()));
-                    // System.out.println(message);
-                } catch (NoSuchFlightException _){
+                } catch (NoSuchFlightException discard){
                     replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Error: No Flight ID: %d", requestReserveSeat.getFlightID()));
                 }
                 
                 break;
             case 4: // Seat call back when number of seat change
-                System.out.println(message);
                 RequestSeatUpdate requestSeatUpdate = new RequestSeatUpdate(message.getBody());
                 ClientInfo clientInfo = new ClientInfo(message.getID(), network.getReplyAddress(), requestSeatUpdate.getTimeOut());
                 try{
@@ -184,8 +175,8 @@ public class Server {
                     String messageString = String.format("Seat notification set for flight %d", requestSeatUpdate.getId());
                     replyMessageBody = new LinkedList<Byte>();
                     MarshallUtils.marshallString(messageString, replyMessageBody);
-                    replyMessage = new Message(sendingMessageID, message.getID()+1, 14,replyMessageBody);
-                } catch(NoSuchFlightException _){
+                    replyMessage = new Message(sendingMessageID, message.getID()+1, 141,replyMessageBody);
+                } catch(NoSuchFlightException discard){
                     replyMessage = new Message(sendingMessageID, message.getID()+1, String.format("Error: Error: No Flight ID: %d", requestSeatUpdate.getId()));
                 }
                 break;
@@ -207,7 +198,8 @@ public class Server {
                 }
                 break;
 
-            case 6: //non-idenpotent create flight
+            case 6: 
+                //non-idenpotent create flight
                 // NOTE: Create flight is non-idempotent as ID is generated by server
                 // 2 request will make 2 flights with different ID.
 
@@ -224,74 +216,5 @@ public class Server {
         oldID = message.getID();
         System.out.println("reply: "+replyMessage.toString());
         network.sendReply(replyMessage);
-        System.out.println("");
-        
-        
     }
-
-    // can change Datagram socket to unreliable socket.
-    // public static void handleRequest(DatagramSocket socket, DatagramPacket requestPacket){
-    //     Message req = new Message(requestPacket.getData());
-    //     System.out.printf("req: %s\n", req.toString());
-    //     System.out.println(Arrays.toString(requestPacket.getData()));
-    //     DatagramPacket reply;
-    //     Message message;
-    //     List<Byte> replyBody;
-
-    //     // invocation types such a atleast once should be here
-    //     // not the application but more serverside handling
-
-    //     try {
-    //         switch(req.getType()){
-    //             case 0: // reply ping
-    //                 System.out.println(req.getBody());
-    //                 message = new Message(123, req.getAck()+1, 999, req.getBody());
-    //                 reply = new DatagramPacket(message.marshall(), message.marshall().length, requestPacket.getAddress(),requestPacket.getPort());
-    //                 socket.send(reply);
-    //                 break;
-
-    //             case 1: // find all flight given src and dest
-    //                 QueryFlightSrcnDest queryFlightSrcnDest = new QueryFlightSrcnDest(req.getBody());
-    //                 String src = queryFlightSrcnDest.getSrc();
-    //                 String dest = queryFlightSrcnDest.getDest();
-    //                 List<FlightInfo> flightList = db.getFlights(src, dest);
-    //                 replyBody = new LinkedList<Byte>();
-    //                 if(flightList.isEmpty()){
-    //                     System.out.println("hahdfsahfshf");
-    //                     message = new Message(messageID, req.getAck()+1, String.format("Error: No Flights From %s To %s Found", src, dest));
-    //                     System.out.println(message);
-    //                 } else {
-    //                     CustomMarshaller.marshallFlightList(flightList, replyBody);
-    //                     message = new Message(messageID, req.getAck()+1, 11, replyBody);
-    //                 }
-    //                 System.out.println("HERERERERE");
-    //                 reply = new DatagramPacket(message.marshall(), message.marshall().length, requestPacket.getAddress(),requestPacket.getPort());
-    //                 socket.send(reply);
-    //                 break;
-    //             case 2:
-    //                 QueryFlightID queryFlightID = new QueryFlightID(req.getBody());
-    //                 int id = queryFlightID.getId();
-    //                 List<FlightInfo> idFlightList = db.getFlights(id);
-    //                 replyBody = new LinkedList<Byte>();
-    //                 if(idFlightList.isEmpty()){
-    //                     message = new Message(messageID, req.getAck()+1, String.format("Error: No Flights With ID %d Found", id));
-    //                 } else {
-    //                     CustomMarshaller.marshallFlightList(idFlightList, replyBody);
-    //                     message = new Message(messageID, req.getAck()+1, 12, replyBody);
-    //                 }
-    //                 reply = new DatagramPacket(message.marshall(), message.marshall().length, requestPacket.getAddress(),requestPacket.getPort());
-    //                 socket.send(reply);
-    //                 break;
-    //         }
-    //     } catch(Exception e){System.out.println(e.toString());}
-
-
-
-    
-
-
-    
-
-
-    
 }

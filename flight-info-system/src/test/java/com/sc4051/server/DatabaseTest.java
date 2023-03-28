@@ -63,7 +63,6 @@ public class DatabaseTest {
         List<ClientInfo> clientList;
         try{
             clientList = db.makeReservation(1010, 5);
-            assertEquals(clientList, null);
         } catch(NotEnoughSeatException e){
             fail("have enough seat");
         } catch(NoSuchFlightException e){

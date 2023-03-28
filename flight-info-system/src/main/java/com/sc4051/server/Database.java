@@ -146,9 +146,12 @@ public class Database {
     }
 
     public void printALL(){
+        System.out.println("===== DB Dump ====");
         for(FlightInfo i :allFlights)
             System.out.println(i.toString());
+        System.out.print("Callback: ");
         System.out.println(callbackList.entrySet().toString());
+        System.out.println("===== END DB Dump ====");
            
     }
 }

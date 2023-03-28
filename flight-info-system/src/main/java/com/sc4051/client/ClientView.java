@@ -142,7 +142,16 @@ public class ClientView {
     public static DateTime getDepartureTime() {
         System.out.println("Enter year, month, day, hrs, min");
         String[] tokens = sc.nextLine().split(" ?, ?");
-        return new DateTime(Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1]),Integer.parseInt(tokens[2]),Integer.parseInt(tokens[3]),Integer.parseInt(tokens[4]));
+        if(tokens.length <5){
+            System.out.println("Insufficient Elements");
+            return getDepartureTime();
+        }
+        try{
+            return new DateTime(Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1]),Integer.parseInt(tokens[2]),Integer.parseInt(tokens[3]),Integer.parseInt(tokens[4]));
+        } catch (NumberFormatException e){
+            System.out.println("Invalid number format");
+            return getDepartureTime();
+        }
     }
 
     public static boolean isY() {

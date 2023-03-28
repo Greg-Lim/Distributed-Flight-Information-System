@@ -10,12 +10,15 @@ import com.sc4051.marshall.MarshallUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 
+
+/**
+ * The Message class represents a message that is send over the netowrk. 
+ * It contains an ID, an ack, a type (type of query/response), and a list of bytes.
+ */
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
 public class Message {
     int ID;
     int ack;
@@ -29,6 +32,13 @@ public class Message {
         this.body = Bytes.asList(HexFormat.ofDelimiter(":").parseHex("00:00:00:05:68:65:6c:6c:6f")); //5 Hello
     }
 
+    /**
+     * This constructor creates a new message with the given ID, ack, type, and message.
+     * @param ID The ID of the message.
+     * @param ack The ack of the message.
+     * @param type The type of the message.
+     * @param msg The message to be sent.
+     */
     public Message(int ID, int ack, int type, String msg) {
         this.type = type;
         List<Byte> body = new LinkedList<Byte>();
@@ -36,9 +46,14 @@ public class Message {
         this.body = body;
         this.ID = ID;
         this.ack = ack;
-
     }
 
+    /**
+     * This constructor creates a new error message with the given ID, ack, and the error.
+     * @param ID The ID of the message.
+     * @param ack The ack of the message.
+     * @param errorMsg The error message to be sent.
+     */
     public Message(int ID, int ack, String errorMsg){
         this.type = 999;
         List<Byte> body = new LinkedList<Byte>();
@@ -48,6 +63,10 @@ public class Message {
         this.ack = ack;
     }
 
+    /**
+     * This constructor Umarshals a array of bytes to a message
+     * @param bytes The bytes representing the message.
+     */
     public Message(byte[] bytes) {
         List<Byte> byteList = new LinkedList<Byte>(Bytes.asList(bytes));
         
@@ -57,6 +76,10 @@ public class Message {
         body = byteList;
     }
 
+    /**
+     * This constructor Umarshals a byteList to a message
+     * @param byteList The bytes representing the message.
+     */
     public Message(List<Byte> byteList) {        
         ID = MarshallUtils.unmarshallInt(byteList);
         ack = MarshallUtils.unmarshallInt(byteList);
@@ -64,6 +87,11 @@ public class Message {
         body = byteList;
     }
 
+    /**
+     * This method marshalls the message into a list of bytes.
+     * @param byteList The list of bytes to be marshalled.
+     * @return The marshalled list of bytes.
+     */
     public List<Byte> marshall(List<Byte> byteList){
         MarshallUtils.marshallInt(ID, byteList);
         MarshallUtils.marshallInt(ack, byteList);
@@ -92,10 +120,9 @@ public class Message {
     }
 
 
-
-
-
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
+
+    // helper function to print hex
     public static String bytesToHex(List<Byte> byteList) {
         byte[] bytes = Bytes.toArray(byteList);
         char[] hexChars = new char[bytes.length * 3];

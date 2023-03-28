@@ -4,7 +4,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.sc4051.entity.DateTime;
-import com.sc4051.entity.FlightInfo;
 import com.sc4051.marshall.MarshallUtils;
 
 import lombok.AllArgsConstructor;
@@ -22,8 +21,6 @@ public class AddFlight {
     double airfare;
     int seatAvailible; 
     
-
-
     public AddFlight(List<Byte> byteList) {        
         source = MarshallUtils.unmarshallString(byteList);
         dest = MarshallUtils.unmarshallString(byteList);
