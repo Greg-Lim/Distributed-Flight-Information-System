@@ -1,0 +1,4 @@
+com\sc4051\entity\FlightInfoTest.class
+com\sc4051\server\DatabaseTest.class
+com\sc4051\AppTest.class
+com\sc4051\marshall\CustomMarshallerTest.class

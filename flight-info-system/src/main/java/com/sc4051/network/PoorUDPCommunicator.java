@@ -49,5 +49,4 @@ public class PoorUDPCommunicator extends UDPCommunicator {
         boolean toSend = Math.random() < sendProbibility;
         return toSend;
     }
-    
 }

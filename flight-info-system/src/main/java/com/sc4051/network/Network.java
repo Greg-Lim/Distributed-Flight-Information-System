@@ -15,6 +15,7 @@ public abstract class Network {
 
     SocketAddress replyAddress;
     int messageID;
+    int maxAttempts;
 
     /**
      * Constructor for the Network class.
@@ -90,12 +91,32 @@ public abstract class Network {
     }
 
     /**
-     * Sends a message to a given socket address and receives a reply.
+     * Sends the given message to the specified socket address and waits for a reply
+     * message. If no reply is received after the maximum number of attempts, a
+     * NoReplyException is thrown.
      *
      * @param message the message to send
-     * @param socketAddress the socket address to which to send the message
-     * @return the received reply message
-     * @throws NoReplyException if a reply is not received within the timeout period
+     * @param socketAddress the address to send the message to
+     * @return the reply message received
+     * @throws NoReplyException if no reply is received after the maximum number of attempts
      */
-    abstract public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException; 
+    public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException{
+        boolean noReply = true;
+        int attempts = 0;
+        while(noReply){
+            System.out.print("Sending Request ... ");
+            send(message, socketAddress);
+            try{
+                Message reply = recieve();
+                System.out.println(""); //just to make a new line
+                return reply;
+            } catch (SocketTimeoutException e){
+                System.out.println("Request Timeout");
+                attempts+=1;
+                if (attempts>=maxAttempts) break;
+                System.out.printf("Resend attempt %d: ", attempts);
+            } catch (CacheHandledReply discard) {}
+        }
+        throw new NoReplyException();
+    }
 }

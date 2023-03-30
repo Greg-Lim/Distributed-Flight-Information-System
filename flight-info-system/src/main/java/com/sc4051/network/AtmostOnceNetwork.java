@@ -13,7 +13,6 @@ import com.sc4051.entity.Message;
  * requests.
  */
 public class AtmostOnceNetwork extends Network{
-    int maxAttempts;
 
     // Cache to store previously sent messages and their replies
     HashMap<String, Message> cache = new HashMap<String,Message>();
@@ -28,36 +27,6 @@ public class AtmostOnceNetwork extends Network{
     public AtmostOnceNetwork(UDPCommunicator udpCommunicator, int maxAttempts ) {
         super(udpCommunicator);
         this.maxAttempts = maxAttempts;
-    }
-
-    /**
-     * Sends the given message to the specified socket address and waits for a reply
-     * message. If no reply is received after the maximum number of attempts, a
-     * NoReplyException is thrown.
-     *
-     * @param message the message to send
-     * @param socketAddress the address to send the message to
-     * @return the reply message received
-     * @throws NoReplyException if no reply is received after the maximum number of attempts
-     */
-    public Message sendAndRecieve(Message message, SocketAddress socketAddress) throws NoReplyException{
-        boolean noReply = true;
-        int attempts = 0;
-        while(noReply){
-            System.out.print("Sending Request ... ");
-            send(message, socketAddress);
-            try{
-                Message reply = recieve();
-                System.out.println(""); //just to make a new line
-                return reply;
-            } catch (SocketTimeoutException e){
-                System.out.println("Request Timeout");
-                attempts+=1;
-                if (attempts>=maxAttempts) break;
-                System.out.printf("Resend attempt %d: ", attempts);
-            } catch (CacheHandledReply discard) {}
-        }
-        throw new NoReplyException();
     }
 
     /**
